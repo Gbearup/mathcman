@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小火柴人遊戲</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #cce7ff;
+        }
+
+        .stickman {
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            width: 20px;
+            height: 60px;
+            background-color: black;
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            height: 60px;
+            background-color: red;
+        }
+
+        /* 小火柴人的跳躍動畫 */
+        @keyframes jump {
+            0% {
+                bottom: 0;
+            }
+
+            50% {
+                bottom: 150px;
+            }
+
+            100% {
+                bottom: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div id="stickman" class="stickman"></div>
+        <div id="obstacle" class="obstacle" style="left: 100%;"></div>
+    </div>
+
+    <script>
+        let stickman = document.getElementById("stickman");
+        let obstacle = document.getElementById("obstacle");
+        let isJumping = false;
+        let score = 0;
+        let gameOver = false;
+
+        // 處理跳躍邏輯
+        document.addEventListener("keydown", function (e) {
+            if (e.code === "Space" && !isJumping && !gameOver) {
+                isJumping = true;
+
+                // 為小火柴人加上跳躍動畫
+                stickman.style.animation = "jump 0.5s ease-in-out forwards";
+
+                // 跳躍結束後重設動畫並允許下一次跳躍
+                setTimeout(() => {
+                    stickman.style.animation = ""; // 重設動畫
+                    isJumping = false; // 允許下一次跳躍
+                }, 500); // 跳躍動畫的時間
+            }
+        });
+
+        // 檢查碰撞
+        function checkCollision() {
+            // 如果小火柴人正在跳躍，則跳過碰撞檢查
+            if (isJumping) return;
+
+            let stickmanRect = stickman.getBoundingClientRect();
+            let obstacleRect = obstacle.getBoundingClientRect();
+
+            // 檢查小火柴人與障礙物的碰撞
+            if (stickmanRect.left < obstacleRect.right &&
+                stickmanRect.right > obstacleRect.left &&
+                stickmanRect.top < obstacleRect.bottom) {
+                gameOver = true;
+                alert("遊戲結束！你的分數是：" + score);
+                location.reload(); // 重新載入遊戲
+            }
+        }
+
+        // 更新分數
+        function updateScore() {
+            score++;
+            document.getElementById("score").innerText = "分數: " + score;
+        }
+
+        // 障礙物移動邏輯
+        function moveObstacle() {
+            let obstacleLeft = parseFloat(obstacle.style.left || 100);
+
+            // 每次移動障礙物，將移動速度設為 0.5%（更慢）
+            obstacle.style.left = (obstacleLeft - 1) + "%"; // 這裡將移動速度設為 0.5%
+
+            // 當障礙物超過畫面左邊時，重置障礙物並增加分數
+            if (obstacleLeft < -3) {
+                obstacle.style.left = "100%"; // 重新將障礙物移到最右邊
+                updateScore(); // 成功避開障礙物增加分數
+            }
+
+            // 檢查碰撞
+            checkCollision();
+        }
+
+        // 每 20 毫秒更新障礙物位置，並檢查碰撞
+        setInterval(function () {
+            if (!gameOver) {
+                moveObstacle();
+            }
+        }, 20);
+
+    </script>
+
+    <div style="position: fixed; top: 10px; left: 10px; font-size: 20px;" id="score">
+        分數: 0
+    </div>
+</body>
+
+</html>
